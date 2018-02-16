@@ -30,6 +30,10 @@ We believe that this project satisfies both of those results and more.
 - If you just want to bring up the Docker Stack of containers, you don't need to change the default configuration from the Git pull
 - But if you don't change the default configuration, you can't play with your own data :)
 
+#### SSH Key management
+- Currently, this project relies on an SSH key and user to SSH to remote systems and run commands.  This is the `run_command` task_type in the JSON rules in the Classifier conf/rules directory.
+  - In `Action_Handler.py`, it would be very easy to create other autoremediation actions like task_type `call_ansible_playbook` or `servicenow_reboot_server`.  The idea was to leave `Action_Handler.py` as a microservice, but it could be extended with extra plugins in the /alexis directory (you can see there is a file specifically there for OpsGenie, named `opsgenie.py`)
+
 ## Configuration
 
 There are three primary configuration files.
@@ -46,14 +50,15 @@ These rules are the main logic which will evaluate incoming data:
 For full autoremediation, you will need to make the following changes:
 
 1. `github_docker-compose.yaml`: replace the content of `/docker/github/keys/my_autoremediation_id_rsa` with your own SSH key which has access to remote systems.  The file name and the user of this should match the name of the key in action_handler's YAML file.
-1. Poller: Change your authentication keys in `authentication_list`
-1. Poller: Change your feed url in `feed_list`
-1. Classifier: Change your authentication keys in `authentication_list`
-1. Classifier: Create rules in the **rules** directory which match the tags and events in your environment
-1. Classifier: Create a 'team' in OpsGenie which matches your value of `default_remediation_queue`
-1. Classifier: Create a 'team' in OpsGenie which matches your value of `default_investigation_queue`
-1. Action_Handler: Change your authentication keys in `authentication_list`
-1. Action_Handler: SSH configuration --> Leave "/run/secrets" as the directory where Docker will place your key. But `ssh_key` and `ssh_user` should match your authentication key in `github_docker-compose.yaml`
+1. **Poller**: Change your authentication keys in `authentication_list`
+1. **Poller**: Change your feed url in `feed_list`
+1. **Classifier**: Change your authentication keys in `authentication_list`
+1. **Classifier**: Create rules in the **rules** directory which match the tags and events in your environment
+1. **Classifier**: Create a 'team' in OpsGenie which matches your value of `default_remediation_queue`
+1. **Classifier**: Create a 'team' in OpsGenie which matches your value of `default_investigation_queue`
+1. **Action_Handler**: Change your authentication keys in `authentication_list`
+1. **Action_Handler**: SSH configuration --> Leave "/run/secrets" as the directory where Docker will place your key. But `ssh_key` and `ssh_user` should match your authentication key in `github_docker-compose.yaml`
+1. **Remote systems**: be sure to configure your `ssh_user` and corresponding `ssh_key` on remote systems
 
 
 ## Versions
