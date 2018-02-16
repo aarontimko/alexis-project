@@ -3,16 +3,18 @@
 This project shows how the root cause analysis within Dynatrace Problems can drive autoremediation in your environment.
 
 Currently the project focuses on immediate triage and resolution of an issue (Ops) rather than rolling back code (Dev).
+
 But the ideas and the structure of this code can apply to any kind of "event-parse-act" workflow.
 
 ## Background
 
 At Dynatrace, we have used OpsGenie as a provider for On-Call responsibilities.
-Although we love that we can easily respond to alerts, shouldn't the goal of Operations be that we handle problems proactively with rehearsed code rather than reactively with improvised actions?
+
+Although we love that we can easily respond to alerts, shouldn't the goal of Operations be that we handle problems *proactively* with _rehearsed code_ rather than *reactively* with _improvised actions_?
 
 At the onset of this project, we wanted to achieve two primary results:
 - reduce MTTR (mean time to resolution)
-- move from Receiving Alerts to Reviewing Reports
+- move from Receiving Alerts to Reviewing Reports (see optional logging endpoint)
 
 We believe that this project satisfies both of those results and more.
 
@@ -20,7 +22,8 @@ We believe that this project satisfies both of those results and more.
 
 #### Docker
 - We have tested 17.09.0 on both Windows and Linux
-- The Docker Compose file will also need to pull images from Docker Hub (https://hub.docker.com)
+- The Docker Compose file will also need to pull images from Docker Hub (https://hub.docker.com/u/dynatracealexis/)
+  - Note: the documentation on these is very minimal 
 - Some functionality requires the Docker Node to be in Swarm Mode (docker swarm init)
 
 #### GitHub
@@ -33,6 +36,9 @@ We believe that this project satisfies both of those results and more.
 #### SSH Key management
 - Currently, this project relies on an SSH key and user to SSH to remote systems and run commands.  This is the `run_command` task_type in the JSON rules in the Classifier conf/rules directory.
   - In `Action_Handler.py`, it would be very easy to create other autoremediation actions like task_type `call_ansible_playbook` or `servicenow_reboot_server`.  The idea was to leave `Action_Handler.py` as a microservice, but it could be extended with extra plugins in the /alexis directory (you can see there is a file specifically there for OpsGenie, named `opsgenie.py`)
+
+#### Optional: logging endpoint
+- There is a lot of very intentional logging which allows you to trace behavior in the stack.  To view these logs from CLI, of course you can use `docker container logs`.  But if you output these to a log management system, you can benefit from a wealth of logging data which helps extensively with debugging.  And if you get more clever, you can even build reports which tell you the number of autoremediation actions, the average duration of each action, failed autoremediation actions, and more.
 
 ## Configuration
 
