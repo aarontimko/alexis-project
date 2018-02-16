@@ -10,7 +10,7 @@ But the ideas and the structure of this code can apply to any kind of "event-par
 
 At Dynatrace, we have used OpsGenie as a provider for On-Call responsibilities.
 
-Although we love that we can easily respond to alerts, shouldn't the goal of Operations be that we handle problems *proactively* with _rehearsed code_ rather than *reactively* with _improvised actions_?
+Although we love that we can easily respond to alerts, shouldn't the goal of Operations be that we handle problems **proactively** with _rehearsed code_ rather than **reactively** with _improvised actions_?
 
 At the onset of this project, we wanted to achieve two primary results:
 - reduce MTTR (mean time to resolution)
