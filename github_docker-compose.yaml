@@ -1,0 +1,62 @@
+version: "3.3"
+services:
+
+  poller:
+    image: dynatracealexis/poller:latest
+    volumes:
+      - type: bind
+        source: ./docker/github/poller/conf
+        target: /usr/src/app/conf
+    hostname: poller_container
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    
+  classifier:
+    image: dynatracealexis/classifier:latest
+    volumes:
+      - type: bind
+        source: ./docker/github/classifier/conf
+        target: /usr/src/app/conf
+    hostname: classifier_container
+    ports:
+      - "8083:80"
+    networks:
+      - internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  action_handler:
+    image: dynatracealexis/action_handler:latest
+    volumes:
+      - type: bind
+        source: ./docker/github/action_handler/conf
+        target: /usr/src/app/conf
+    hostname: action_handler_container
+    ports:
+      - "8084:80"
+    networks:
+      - internal
+    secrets:
+      - source: my_autoremediation_id_rsa
+        mode: 0600
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  internal:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.80.0/24
+
+secrets:
+  my_autoremediation_id_rsa:
+    file: ./docker/github/keys/my_autoremediation_id_rsa

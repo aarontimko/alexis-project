@@ -1,0 +1,39 @@
+FROM python:3.6.2-alpine3.6
+
+# VERSIONS
+ENV UWSGI_IVERSION 2.0.15
+
+# cd to WORKDIR
+WORKDIR /usr/src/app
+
+# install Alpine uwsgi
+RUN apk add -U \
+      gcc \
+      linux-headers \
+      musl-dev \
+    && \
+  pip install uwsgi==${UWSGI_IVERSION} && \
+  apk del \
+    gcc \
+    linux-headers \
+    musl-dev
+
+# VERSIONS
+ENV REQUESTS_IVERSION 2.18.4
+ENV PYYAML_IVERSION 3.12
+
+# run pip to install requirements
+RUN pip install requests==${REQUESTS_IVERSION}
+RUN pip install PyYAML==${PYYAML_IVERSION}
+
+# create empty directories as placeholders
+RUN mkdir log
+
+# copy application and supporting code directory
+COPY alexis/* alexis/
+COPY poller.py poller.py
+
+# run application
+CMD [ "python","-u","./poller.py" ]
+
+

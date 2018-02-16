@@ -1,0 +1,38 @@
+# Version which is often tracked by Sprint number
+version: '2.057'
+
+# Action_Handler
+action_handler:
+  # This 'development' flag means actions will print to console
+  # instead of being executed across the network
+  development: 'false'
+
+  # The listener is only respected if running python via cli
+  listener:
+    hostname: '0.0.0.0'
+    port: '8084'
+    protocol: 'http' # Not currently in use
+  
+  # This is the private key and username for doing autoactions 
+  ssh_key: "/run/secrets/my_autoremediation_id_rsa"
+  ssh_user: "autoremediation"
+
+  # Define tokens for the application
+  tokens:
+    # This is the list of tokens permitted to communicate with the application
+    allowed_clients: 'clients.action_handler.json'
+    # This is the directory where the tokens are located
+    directory: 'tokens'
+    # This is the token used by the application to connect to other
+    # Alexis applications and instances
+    runtime: 'localhost.token.json'
+
+# Any Alexis application can use this authentication list definition
+authentication_list:
+  # Required keys: name, type, description, headers
+
+  - name: 'opsgenie_test_fireinthehole'
+    type: 'opsgenie'
+    description: 'Alexis 2.0 - test_fireinthehole'
+    headers: '{"Authorization":"GenieKey 930djvn3-3ndj-19dj-dj3f-39djivk210dk"}'
+

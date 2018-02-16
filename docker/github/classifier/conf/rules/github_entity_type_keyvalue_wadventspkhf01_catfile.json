@@ -1,0 +1,36 @@
+{"enabled":"true",
+   "os_type":"linux",
+   "rule_name":"entity_type_keyvalue_wadventspkhf01_catfile",
+   "rule_description":"Cats a file on a remote system",
+   "rule_version":"1.01",
+   "alert_feed":"OpsGenie",
+   "evaluation_list":[
+      {
+         "evaluation":{
+            "tags":[
+                "syn.test",
+                "syn.automation"
+            ],
+            "search_key":"message",
+            "search_text":"entity_type_keyvalue_wadventspkhf01_catfile",
+            "duration":"0m",
+            "task_type":"run_command"
+             }
+      }
+   ],
+   "task_list":[
+      {
+         "task":{
+            "task_type":"remote_ssh",
+            "run_command":"cat /home/autoremediation/testautomation/test_catfile.txt",
+            "delay_after":"30s",
+            "action":"catfile",
+            "action_reason":"testautomation"
+         }
+      }
+   ],
+   "entity_type":"keyvalue",
+   "entity_keyvalue":["details","host_regex"],
+   "route_to_team":"test_email_aaron",
+   "delay_escalation":"20m"
+}

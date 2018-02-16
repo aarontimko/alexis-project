@@ -1,0 +1,58 @@
+# Version which is often tracked by Sprint number
+version: '2.057'
+
+# Any Alexis application can use this authentication list definition
+authentication_list:
+  # Required keys: name, type, description, headers
+
+  - name: 'opsgenie_test_fireinthehole'
+    type: 'opsgenie'
+    description: 'Alexis 2.0 - test_fireinthehole'
+    headers: '{"Authorization":"GenieKey 930djvn3-3ndj-19dj-dj3f-39djivk210dk"}'
+
+# Poller
+poller:
+
+  # Define specific classifiers
+  classifier_destinations:
+    opsgenie: 'http://classifier/v1'
+
+  # debug: True|False for debug output
+  debug: True
+  development: 'true' # Not currently in use
+
+  # Define list of feeds
+  feed_list:
+
+      # Unique name of feed
+    - name: 'OpsGenie_test_incomingalerts'
+      # This is the authentication 'name' to use for this feed
+      authentication: 'opsgenie_alexis'
+      # Friendly description
+      description: 'Alerts for test_incomingalerts'
+      # Lookback value from now()
+      lookback: '14400'
+      # Unit of lookback value [s=seconds,m=minutes,h=hours]
+      lookback_unit: 's'
+      # Feed type [opsgenie,dynatrace]
+      type: 'opsgenie'
+      # URL of feed
+      url: >
+        https://api.opsgenie.com/v2/alerts?query=status=open
+        AND teams=test_incomingalerts
+        AND teams!=queue_autoremediation
+        AND teams!=queue_needsinvestigation
+        AND createdAt>$lookback
+      # URL to grab verbose data for individual data entity
+      url_individual: https://api.opsgenie.com/v2/alerts/$tinyid?identifierType=tiny
+
+  # Define interval in seconds for the poller's main loop
+  loop_interval: 10
+
+  # Define tokens for the application
+  tokens:
+    # This is the directory where the tokens are located
+    directory: 'tokens'
+    # This is the token used by the application to connect to other
+    # Alexis applications and instances
+    runtime: 'localhost.token.json'

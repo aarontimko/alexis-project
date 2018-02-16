@@ -1,0 +1,38 @@
+{"enabled":"true",
+   "os_type":"linux",
+   "rule_name":"day_duplicator_garbagecollection_restartservice",
+   "rule_description":"Restarts Duplicator if Garbage Collection alert occurs",
+   "rule_version":"1.01",
+   "alert_feed":"OpsGenie",
+   "evaluation_list":[
+      {
+         "evaluation":{
+            "tags":[
+               "syn.day",
+               "syn.duplicator"
+            ],
+            "search_key":"description",
+            "search_text":"Long garbage-collection time",
+            "duration":"0m",
+            "task_type":"run_command"
+             }
+      }
+   ],
+   "task_list":[
+      {
+         "task":{
+            "task_type":"remote_ssh",
+            "run_command":"sudo systemctl restart duplicator; sudo systemctl status duplicator | grep Active:",
+            "delay_after":"30s",
+            "action":"restart_service",
+            "action_reason":"garbage_collection_or_memory_exhausted"
+         }
+      }
+   ],
+   "entity_type":"explicit",
+   "entities":[
+      "wayvsymdup01.dev.saasapm.com"
+   ],
+   "route_to_team":"email_opsunixadmins",
+   "delay_escalation":"20m"
+}

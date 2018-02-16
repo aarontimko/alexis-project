@@ -1,0 +1,19 @@
+{"token_list":[
+  {
+    "token": {
+      "type":"host",
+      "host": "classifier_container",
+      "requestor": "GitHub User",
+      "description":"Classifier container for a GitHub User",
+      "id": "vn3kfh1839gjsneurixo3056jvj3kxnv"
+    }
+  },
+  {
+    "token": {
+      "type":"user",
+      "requestor": "GitHub User",
+      "id": "29486n1nvkd823601kxmlyuwhoodf391"
+    }
+  }
+  ]
+}

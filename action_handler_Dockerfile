@@ -1,0 +1,48 @@
+FROM python:3.6.2-alpine3.6
+
+# VERSIONS
+ENV UWSGI_IVERSION 2.0.15
+
+# cd to WORKDIR
+WORKDIR /usr/src/app
+
+# install Alpine uwsgi
+RUN apk add -U \
+      gcc \
+      linux-headers \
+      musl-dev \
+    && \
+  pip install uwsgi==${UWSGI_IVERSION} && \
+  apk del \
+    gcc \
+    linux-headers \
+    musl-dev
+
+# VERSIONS
+ENV BOTTLE_IVERSION 0.12.13
+ENV REQUESTS_IVERSION 2.18.4
+ENV PYYAML_IVERSION 3.12
+
+# run pip to install requirements
+RUN pip install bottle==${BOTTLE_IVERSION}
+RUN pip install requests==${REQUESTS_IVERSION}
+RUN pip install PyYAML==${PYYAML_IVERSION}
+
+# create empty directories as placeholders
+RUN mkdir log
+
+# Set up SSH Client
+RUN apk add -U openssh-client
+
+# Change setting to NOT confirm host key for each new connection
+RUN echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+
+# copy application and supporting code directory
+COPY alexis/* alexis/
+COPY action_handler.py action_handler.py
+
+# run UWSGI
+CMD [ "uwsgi", "--http-socket", "0.0.0.0:80", \
+               "--wsgi-file", "action_handler.py", \
+               "--master", "--processes", "4", \
+               "--threads", "4"]
