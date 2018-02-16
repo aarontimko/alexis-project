@@ -23,9 +23,9 @@ We believe that this project satisfies both of those results and more.
 To cut through all of the documentation below, you can download and run with:
 
 ```
-git clone --progress -v "https://github.com/aarontimko/alexis-project-test.git" alexis-project-test \
-cd alexis-project-test \
-docker stack deploy -c .\github_docker-compose.yaml alexis \
+git clone --progress -v "https://github.com/aarontimko/alexis-project-test.git" alexis-project-test
+cd alexis-project-test
+docker stack deploy -c .\github_docker-compose.yaml alexis
 ```
 
 To tear down:
