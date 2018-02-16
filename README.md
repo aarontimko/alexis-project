@@ -18,6 +18,20 @@ At the onset of this project, we wanted to achieve two primary results:
 
 We believe that this project satisfies both of those results and more.
 
+## Simple Run
+
+To cut through all of the documentation below, you can download and run with:
+
+```
+git clone --progress -v "https://github.com/aarontimko/alexis-project-test.git" alexis-project-test \
+cd alexis-project-test \
+docker stack deploy -c .\github_docker-compose.yaml alexis \
+```
+
+To tear down:
+
+`docker stack rm alexis`
+
 ## Requirements
 
 #### Docker
@@ -34,7 +48,7 @@ We believe that this project satisfies both of those results and more.
 - But if you don't change the default configuration, you can't play with your own data :)
 
 #### SSH Key management
-- Currently, this project relies on an SSH key and user to SSH to remote systems and run commands.  This is the `run_command` task_type in the JSON rules in the Classifier conf/rules directory.
+- Currently, this project relies on an SSH key and user to SSH to remote systems and run commands.  This is the `run_command` task_type in the JSON rules in the Classifier conf/rules directory.  This was chosen because the content of the `run_command` can be specified to any one-liner and this keeps autoremediation options very flexible.
   - In `Action_Handler.py`, it would be very easy to create other autoremediation actions like task_type `call_ansible_playbook` or `servicenow_reboot_server`.  The idea was to leave `Action_Handler.py` as a microservice, but it could be extended with extra plugins in the /alexis directory (you can see there is a file specifically there for OpsGenie, named `opsgenie.py`)
 
 #### Optional: logging endpoint
