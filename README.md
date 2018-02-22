@@ -110,7 +110,7 @@ This section describes the Alexis stack in greater detail and will explain the t
 
 ![Diagram: Overview of Simple Run](/images/diagram-overview-of-simple-run.png)
 
-**Dynatrace Integration with OpsGenie**
+### Dynatrace Integration with OpsGenie
 
 This is straightforward to send outbound Problems from Dynatrace and receive that data in OpsGenie.
 
@@ -120,7 +120,7 @@ This is straightforward to send outbound Problems from Dynatrace and receive tha
 
 _Note: OpsGenie supporting Dynatrace tags is a significant feature which enables Alexis to easily parse programmatically via attributes rather than parsing string via regex, hostnames, etc._
 
-**Docker Bind Mounts**
+### Docker Bind Mounts
 
 The Docker images are configured to use your local filesystem in order to reach the Conf directories.
 e.g.
@@ -134,18 +134,18 @@ e.g.
 If you update a `alexis.conf.yaml` configuration on your local filesystem, restart the corresponding container.
 However, if you update or add a Rule to the classifier/conf/rules directory, this does not require a restart of the Classifier.  Rules are retrieved at each execution of the Classifier API.
 
-**Networking**
+### Networking
 
 With Docker, you can create internal networks which never have to leave the Docker context.
 We chose to use an internal Docker network as the default communication to improve portability of Alexis.
 
-**API Access**
+### API Access
 
 After some consideration, we chose to _not_ implement a message queue like RabbitMQ or Kafka, and instead designed APIs.
 This not only reduced components and dependencies, but also allows us to design APIs which can be called directly.
 We have already seen this pay off by allowing individuals to easily interface with Alexis and call the Action_Handler API (of course, with their own Authentication Token!)
 
-**Rule Storage**
+### Rule Storage
 
 Currently the rules are stored on disk, which is admittedly lazy, but it accomplishes the task.
 
@@ -153,7 +153,7 @@ As a guiding directive, we wanted to focus on making rules powerful and flexible
 
 For instance, when we realized we accidentally limited the scope of a rule to only one pipeline stage, we refactored the Classifier code so that a single rule for the 'Duplicator' application could accomplish the same autoremediation task across Day, Sprint, and Prod.
 
-**Logging With Reporting in Mind**
+### Logging With Reporting in Mind
 
 As a quick and flexible reporting methodology, we are using logging as a data and metrics repository.
 When we implement Autoremediation, we need to report against these kinds of questions:
@@ -165,7 +165,7 @@ When we implement Autoremediation, we need to report against these kinds of ques
 
 The Alexis components log in`key=value` syntax which can be extracted as key-value pairs for reporting.
 
-**Keep A History**
+### Keep A History
 
 We also want to record the high-level history of our autoremediation tasks as close to the original source as possible.
 The reporting option via logging should be additional, not primary.
@@ -174,7 +174,7 @@ Currently, we post back to the OpsGenie ticket, but we will soon work on posting
 _This will be implemented by March 2018_
 
 
-#### Diagram: Detail of Poller
+## Diagram: Detail of Poller
 
 We wanted the Poller to be kept small and efficient, eliminating any processing or data validation.
 
