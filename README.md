@@ -14,6 +14,16 @@
     - [Configuration](#configuration)
     - [Versions](#configuration)
 - [Diagrams and Concepts](#diagrams-and-concepts)
+    - [Detail of Simple Run](#detail-of-simple-run)
+        - [Dynatrace Integration with OpsGenie](#dynatrace-integration-with-opsgenie)
+        - [Docker Bind Mounts](#docker-bind-mounts)
+        - [Docker Networking](#docker-networking)
+        - [API Access](#api-access)
+        - [Rule Storage](#rule-storage)
+        - [Logging With Reporting in Mind](#logging-with-reporting-in-mind)
+        - [Keep A History](#keep-a-history)
+    - [Detail of Poller](#detail-of-poller)
+
 
 # Introduction
 
@@ -106,9 +116,9 @@ v1.01 - Initial commit
 
 This section describes the Alexis stack in greater detail and will explain the thought process behind the design.
 
-## Diagram: Overview of Simple Run
+## Detail of Simple Run
 
-![Diagram: Overview of Simple Run](/images/diagram-overview-of-simple-run.png)
+![Diagram: Detail of Simple Run](/images/diagram-detail-of-simple-run.png)
 
 ### Dynatrace Integration with OpsGenie
 
@@ -134,14 +144,14 @@ e.g.
 If you update a `alexis.conf.yaml` configuration on your local filesystem, restart the corresponding container.
 However, if you update or add a Rule to the classifier/conf/rules directory, this does not require a restart of the Classifier.  Rules are retrieved at each execution of the Classifier API.
 
-### Networking
+### Docker Networking
 
 With Docker, you can create internal networks which never have to leave the Docker context.
-We chose to use an internal Docker network as the default communication to improve portability of Alexis.
+We chose to use an internal Docker network as the default communication to improve portability of Alexis, but ports are also exposed for the Classifier and Action_Handler APIs on the Docker Host.
 
 ### API Access
 
-After some consideration, we chose to _not_ implement a message queue like RabbitMQ or Kafka, and instead designed APIs.
+After some consideration, we chose _not_ to implement a message queue like RabbitMQ or Kafka, and instead designed APIs.
 This not only reduced components and dependencies, but also allows us to design APIs which can be called directly.
 We have already seen this pay off by allowing individuals to easily interface with Alexis and call the Action_Handler API (of course, with their own Authentication Token!)
 
