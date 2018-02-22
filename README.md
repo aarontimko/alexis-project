@@ -14,7 +14,7 @@
     - [Configuration](#configuration)
     - [Versions](#configuration)
 - [Diagrams and Concepts](#diagrams-and-concepts)
-    - [Detail of Simple Run](#detail-of-simple-run)
+    - [Detail of Alexis Stack](#detail-of-alexis-stack)
         - [Dynatrace Integration with OpsGenie](#dynatrace-integration-with-opsgenie)
         - [Docker Bind Mounts](#docker-bind-mounts)
         - [Docker Networking](#docker-networking)
@@ -162,8 +162,10 @@ You can see this in the diagram above:
 
 After some consideration, we chose _not_ to implement a message queue like RabbitMQ or Kafka, and instead designed APIs for component interaction.
 
-This not only reduced components and dependencies, but also allows us to design APIs which can be called directly.
-We have already seen this pay off by allowing individuals to easily interface with Alexis and call the Action_Handler API (of course, with their own Authentication Token!)
+This decision reduced components and dependencies, which was a core directive of this project.
+In previous endeavors, we have seen automation projects take on a life of their own, leading to underused databases and technologies which then have to be maintained, secured, upgraded, and so on.
+
+Focusing on API development, we have already seen this pay off by allowing individuals to easily interface with Alexis and call the Action_Handler API (of course, with their own Authentication Token!)
 
 The APIs for Classifier and Action_Handler run on uWSGI with a Bottle framework (see https://uwsgi-docs.readthedocs.io and https://bottlepy.org/docs/dev/)
 See the Dockerfiles for Classifier and Action_Handler to examine the default process and thread settings.
@@ -195,7 +197,7 @@ https://docs.docker.com/engine/swarm/secrets
 
 ### Rule Storage
 
-In alignment with our decision to not implement a message queue [see API Access](#api-access), we wanted to avoid using a database unless absolutely necessary.
+In alignment with our decision to not implement a message queue ([see API Access](#api-access)), we wanted to avoid using a database unless it was technically mandatory.
 Therefore, currently the Classifier rules are stored on disk, which admittedly is not robust, but it accomplishes the goal of simple rule storage.
 
 Also, as a guiding directive we wanted to focus on making rules powerful and flexible so that it keeps rule storage to a minimum.
