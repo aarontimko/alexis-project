@@ -130,7 +130,7 @@ This is straightforward to send outbound Problems from Dynatrace and receive tha
 1. Create an OpsGenie Integration in Dynatrace and enter the key.
 
 
-_Note: OpsGenie supporting Dynatrace tags is a significant feature which enables Alexis to easily parse programmatically via attributes rather than parsing string via regex, hostnames, etc._
+_Note: OpsGenie supporting Dynatrace tags is a significant feature which enables Alexis to interact programmatically via existing CI/CD metadata rather than parsing string fields with regex, using hostname syntax, etc._
 
 ### Docker Bind Mounts
 
