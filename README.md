@@ -1,20 +1,21 @@
 # alexis-project-test
 
-## Table of content
+# Table of contents
 
 - [Introduction](#introduction)
-- [Background](#background)
-- [Simple Run](#simple-run)
-- [Requirements](#requirements)
-    - [Docker Version](#docker-version)
-    - [GitHub and DockerHub Access](#github-and-dockerhub-access)
-    - [Config changes](#config-changes)
-    - [Optional: logging endpoint](#optional-logging-endpoint)
-- [Configuration](#configuration)
-- [Versions](#configuration)
+    - [Background](#background)
+    - [Simple Run](#simple-run)
+    - [Requirements](#requirements)
+        - [Docker Version](#docker-version)
+        - [GitHub and DockerHub Access](#github-and-dockerhub-access)
+        - [Config changes](#config-changes)
+        - [SSH Key management](#ssh-key-management)
+        - [Optional: logging endpoint](#optional-logging-endpoint)
+    - [Configuration](#configuration)
+    - [Versions](#configuration)
 - [Diagrams and Concepts](#diagrams-and-concepts)
 
-## Introduction
+# Introduction
 
 This project shows how the root cause analysis within Dynatrace Problems can drive autoremediation in your environment.
 
@@ -22,7 +23,7 @@ Currently the project focuses on immediate triage and resolution of an issue (Op
 
 But the ideas and the structure of this code can apply to any kind of "event-parse-act" workflow.
 
-## Background
+### Background
 
 At Dynatrace, we have used OpsGenie as a provider for On-Call responsibilities.
 
@@ -34,7 +35,7 @@ At the onset of this project, we wanted to achieve two primary results:
 
 We believe that this project satisfies both of those results and more.
 
-## Simple Run
+### Simple Run
 
 To cut through all of the documentation below, you can download and run with:
 
@@ -48,7 +49,7 @@ To tear down:
 
 `docker stack rm alexis`
 
-## Requirements
+### Requirements
 
 #### Docker Version
 - We have tested 17.09.0 on both Windows and Linux
@@ -70,7 +71,7 @@ To tear down:
 #### Optional: logging endpoint
 - There is a lot of very intentional logging which allows you to trace behavior in the stack.  To view these logs from CLI, of course you can use `docker container logs`.  But if you output these to a log management system, you can benefit from a wealth of logging data which helps extensively with debugging.  And if you get more clever, you can even build reports which tell you the number of autoremediation actions, the average duration of each action, failed autoremediation actions, and more.
 
-## Configuration
+### Configuration
 
 There are three primary configuration files.
 YAML was chosen because it is easy to document in-line, so do check out these files first.
@@ -97,15 +98,15 @@ For full autoremediation, you will need to make the following changes:
 1. **Remote systems**: be sure to configure your `ssh_user` and corresponding `ssh_key` on remote systems
 
 
-## Versions
+### Versions
 
 v1.01 - Initial commit
 
-## Diagrams and Concepts
+# Diagrams and Concepts
 
 This section describes the Alexis stack in greater detail and will explain the thought process behind the design.
 
-#### Diagram: Overview of Simple Run
+## Diagram: Overview of Simple Run
 
 ![Diagram: Overview of Simple Run](/images/diagram-overview-of-simple-run.png)
 
