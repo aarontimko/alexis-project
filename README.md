@@ -1,5 +1,21 @@
 # alexis-project-test
 
+## Table of content
+
+- [Introduction](#introduction)
+- [Background](#background)
+- [Simple Run](#simple-run)
+- [Requirements](#requirements)
+    - [Docker Version](#docker-version)
+    - [GitHub and DockerHub Access](#github-and-dockerhub-access)
+    - [Config changes](#config-changes)
+    - [Optional: logging endpoint](#optional-logging-endpoint)
+- [Configuration](#configuration)
+- [Versions](#configuration)
+- [Diagrams and Concepts](#diagrams-and-concepts)
+
+## Introduction
+
 This project shows how the root cause analysis within Dynatrace Problems can drive autoremediation in your environment.
 
 Currently the project focuses on immediate triage and resolution of an issue (Ops) rather than rolling back code (Dev).
@@ -34,14 +50,14 @@ To tear down:
 
 ## Requirements
 
-#### Docker
+#### Docker Version
 - We have tested 17.09.0 on both Windows and Linux
-- The Docker Compose file will also need to pull images from Docker Hub (https://hub.docker.com/u/dynatracealexis/)
-  - Note: the documentation on these is very minimal 
 - Some functionality requires the Docker Node to be in Swarm Mode (docker swarm init)
 
-#### GitHub
+#### GitHub and DockerHub Access
 - Pull this repo onto your Windows/Linux machine which has Docker
+- The Docker Compose file will also need to pull images from Docker Hub (https://hub.docker.com/u/dynatracealexis/)
+  - Note: the documentation on these GitHub images is very minimal
 
 #### Config changes
 - If you just want to bring up the Docker Stack of containers, you don't need to change the default configuration from the Git pull
@@ -84,5 +100,87 @@ For full autoremediation, you will need to make the following changes:
 ## Versions
 
 v1.01 - Initial commit
+
+## Diagrams and Concepts
+
+This section describes the Alexis stack in greater detail and will explain the thought process behind the design.
+
+#### Diagram: Overview of Simple Run
+
+![Diagram: Overview of Simple Run](/images/diagram-overview-of-simple-run.png)
+
+**Dynatrace Integration with OpsGenie**
+
+This is straightforward to send outbound Problems from Dynatrace and receive that data in OpsGenie.
+
+1. Create a Dynatrace Integration in OpsGenie and record the key.
+1. Create an OpsGenie Integration in Dynatrace and enter the key.
+
+
+_Note: OpsGenie supporting Dynatrace tags is a significant feature which enables Alexis to easily parse programmatically via attributes rather than parsing string via regex, hostnames, etc._
+
+**Docker Bind Mounts**
+
+The Docker images are configured to use your local filesystem in order to reach the Conf directories.
+e.g.
+```
+    volumes:
+      - type: bind
+        source: ./docker/github/poller/conf
+        target: /usr/src/app/conf
+```
+
+If you update a `alexis.conf.yaml` configuration on your local filesystem, restart the corresponding container.
+However, if you update or add a Rule to the classifier/conf/rules directory, this does not require a restart of the Classifier.  Rules are retrieved at each execution of the Classifier API.
+
+**Networking**
+
+With Docker, you can create internal networks which never have to leave the Docker context.
+We chose to use an internal Docker network as the default communication to improve portability of Alexis.
+
+**API Access**
+
+After some consideration, we chose to _not_ implement a message queue like RabbitMQ or Kafka, and instead designed APIs.
+This not only reduced components and dependencies, but also allows us to design APIs which can be called directly.
+We have already seen this pay off by allowing individuals to easily interface with Alexis and call the Action_Handler API (of course, with their own Authentication Token!)
+
+**Rule Storage**
+
+Currently the rules are stored on disk, which is admittedly lazy, but it accomplishes the task.
+
+As a guiding directive, we wanted to focus on making rules powerful and flexible so that it keeps rule storage to a minimum.
+
+For instance, when we realized we accidentally limited the scope of a rule to only one pipeline stage, we refactored the Classifier code so that a single rule for the 'Duplicator' application could accomplish the same autoremediation task across Day, Sprint, and Prod.
+
+**Logging With Reporting in Mind**
+
+As a quick and flexible reporting methodology, we are using logging as a data and metrics repository.
+When we implement Autoremediation, we need to report against these kinds of questions:
+
+1. What kind of autoremediation tasks are being executed?
+1. Are our autoremediation executions successful?
+1. What is the duration of our autoremediation tasks?
+1. How many times have we executed _X_ autoremediation against _Y_ entity in the past _Z_ hours/days?
+
+The Alexis components log in`key=value` syntax which can be extracted as key-value pairs for reporting.
+
+**Keep A History**
+
+We also want to record the high-level history of our autoremediation tasks as close to the original source as possible.
+The reporting option via logging should be additional, not primary.
+
+Currently, we post back to the OpsGenie ticket, but we will soon work on posting status back to the Dynatrace Problem as well.
+_This will be implemented by March 2018_
+
+
+#### Diagram: Detail of Poller
+
+We wanted the Poller to be kept small and efficient, eliminating any processing or data validation.
+
+
+![Diagram: Detail of Poller](/images/diagram-detail-of-poller.png)
+
+
+
 
 
