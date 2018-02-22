@@ -121,9 +121,9 @@ v1.01 - Initial commit
 This section describes the Alexis stack in greater detail, includes diagrams, and explains the concepts behind the design.
 
 
-## Detail of Simple Run
+## Detail of Alexis Stack
 
-![Diagram: Detail of Simple Run](/images/diagram-detail-of-simple-run.png)
+![Diagram: Detail of Alexis Stack](/images/diagram-detail-of-alexis-stack.png)
 
 ### Dynatrace Integration with OpsGenie
 
@@ -175,8 +175,8 @@ This project is not designed to handle the implementation and troubleshooting of
 But you would need to do these basic steps:
 
 1. Create new Dockerfiles for Classifier and Action_Handler with the steps below.
-1. ADD your certs to the `WORKDIR /usr/src/app` location (e.g. `/usr/src/app/certs/your-company.crt` and `/usr/src/app/certs/your-company.key`)
-1. ADD these options to the `CMD` uWSGI execution:
+1. `ADD` your certs to the `WORKDIR /usr/src/app` location (e.g. `/usr/src/app/certs/your-company.crt` and `/usr/src/app/certs/your-company.key`)
+1. Add these options to the `CMD` uWSGI execution:
 ```
 "--https", "0.0.0.0:80,certs/your-company.crt,certs/your-company.key"
 ```
@@ -195,9 +195,10 @@ https://docs.docker.com/engine/swarm/secrets
 
 ### Rule Storage
 
-Currently the rules are stored on disk, which is admittedly lazy, but it accomplishes the goal of storing rules.
+In alignment with our decision to not implement a message queue [see API Access](#api-access), we wanted to avoid using a database unless absolutely necessary.
+Therefore, currently the Classifier rules are stored on disk, which admittedly is not robust, but it accomplishes the goal of simple rule storage.
 
-As a guiding directive, we wanted to focus on making rules powerful and flexible so that it keeps rule storage to a minimum.
+Also, as a guiding directive we wanted to focus on making rules powerful and flexible so that it keeps rule storage to a minimum.
 
 For instance, when we realized we accidentally limited the scope of a rule to only one pipeline stage, we refactored the Classifier code so that a single rule for the 'Duplicator' application could accomplish the same autoremediation task across Day, Sprint, and Prod.
 
