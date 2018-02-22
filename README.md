@@ -23,6 +23,8 @@
         - [Logging With Reporting in Mind](#logging-with-reporting-in-mind)
         - [Keep A History](#keep-a-history)
     - [Detail of Poller](#detail-of-poller)
+    - [Detail of Classifier](#detail-of-classifier)
+    - [Detail of Action_Handler](#detail-of-action_handler)
 
 
 # Introduction
@@ -192,6 +194,15 @@ We wanted the Poller to be kept small and efficient, eliminating any processing 
 ![Diagram: Detail of Poller](/images/diagram-detail-of-poller.png)
 
 
+Section not completed yet.
+
+
+## Diagram: Detail of Classifier
+
+Section not completed yet.
 
 
 
+## Diagram: Detail of Action_Handler
+
+Section not completed yet.
