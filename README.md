@@ -149,17 +149,20 @@ However, if you update or add a Rule to the classifier/conf/rules directory, thi
 ### Docker Networking
 
 With Docker, you can create internal networks which never have to leave the Docker context.
+
 We chose to use an internal Docker network as the default communication to improve portability of Alexis, but ports are also exposed for the Classifier and Action_Handler APIs on the Docker Host.
 
 ### API Access
 
-After some consideration, we chose _not_ to implement a message queue like RabbitMQ or Kafka, and instead designed APIs.
+After some consideration, we chose _not_ to implement a message queue like RabbitMQ or Kafka, and instead designed APIs for component interaction.
+
 This not only reduced components and dependencies, but also allows us to design APIs which can be called directly.
+
 We have already seen this pay off by allowing individuals to easily interface with Alexis and call the Action_Handler API (of course, with their own Authentication Token!)
 
 ### Rule Storage
 
-Currently the rules are stored on disk, which is admittedly lazy, but it accomplishes the task.
+Currently the rules are stored on disk, which is admittedly lazy, but it accomplishes the goal of storing rules.
 
 As a guiding directive, we wanted to focus on making rules powerful and flexible so that it keeps rule storage to a minimum.
 
@@ -168,6 +171,7 @@ For instance, when we realized we accidentally limited the scope of a rule to on
 ### Logging With Reporting in Mind
 
 As a quick and flexible reporting methodology, we are using logging as a data and metrics repository.
+
 When we implement Autoremediation, we need to report against these kinds of questions:
 
 1. What kind of autoremediation tasks are being executed?
