@@ -380,9 +380,19 @@ The current Action Handler plugin does basic error handling for the remote SSH c
 Here is an excerpt of logged statements by the Action Handler's SSH handler:
 
 ```
-2018-02-18 01:28:13,654 [INFO]  Action_Handler::Action - ActionStart (Thread-5) entity="wayvsymdup01.dev.saasapm.com" command="sudo systemctl restart duplicator; sudo systemctl status duplicator | grep Active:" key="/run/secrets/autoremediation_id_rsa" user="autoremediation" tinyId="3292"
-2018-02-18 01:28:21,484 [INFO]  Action_Handler::Action - ActionResult (Thread-5) result="[b'   Active: active (running) since Sun 2018-02-18 01:28:21 UTC; 21ms ago\n']" tinyId="3292"
-2018-02-18 01:28:21,484 [INFO]  Action_Handler::Action - ActionFinished (Thread-5) rule_name="hostvalue_duplicator_garbagecollection_restartservice" entity="wayvsymdup01.dev.saasapm.com" action="restart_service" action_reason="garbage_collection_or_memory_exhausted" action_status="success" app_elapsed_ms="7831" tinyId="3292" result="[b'   Active: active (running) since Sun 2018-02-18 01:28:21 UTC; 21ms ago\n']"
+2018-02-18 01:28:13,654 [INFO]  Action_Handler::Action - ActionStart (Thread-5) 
+entity="wayvsymdup01.dev.saasapm.com" command="sudo systemctl restart duplicator; 
+sudo systemctl status duplicator | grep Active:" key="/run/secrets/autoremediation_id_rsa" 
+user="autoremediation" tinyId="3292"
+2018-02-18 01:28:21,484 [INFO]  Action_Handler::Action - ActionResult (Thread-5) 
+result="[b'   Active: active (running) since Sun 2018-02-18 01:28:21 UTC; 21ms ago\n']" 
+tinyId="3292"
+2018-02-18 01:28:21,484 [INFO]  Action_Handler::Action - ActionFinished (Thread-5) 
+rule_name="hostvalue_duplicator_garbagecollection_restartservice" 
+entity="wayvsymdup01.dev.saasapm.com" action="restart_service" 
+action_reason="garbage_collection_or_memory_exhausted" action_status="success" 
+app_elapsed_ms="7831" tinyId="3292" 
+result="[b'   Active: active (running) since Sun 2018-02-18 01:28:21 UTC; 21ms ago\n']"
 ```
 
 Note these important steps:
@@ -399,8 +409,9 @@ If the SSH connection bombs out, the "ActionResult" line will show `ERROR connec
 
 And if we want to graph the `app_elapsed_ms` for all occurrences of `action=restart_service`, we can send our logs to a log management platform with key-value pair extraction capabilities.
 
-_In sum, a well-defined Action Handler plugin should always provide Answers which are readily available any time we want to pose Questions to our data._
+- _*In sum, a well-defined Action Handler plugin should always provide Answers which are readily available any time we want to pose Questions to our data.*_
 
+.
 
 ## Alexis Deploy and Automation Testing
 
