@@ -387,9 +387,11 @@ Here is an excerpt of logged statements by the Action Handler's SSH handler:
 entity="wayvsymdup01.dev.saasapm.com" command="sudo systemctl restart duplicator; 
 sudo systemctl status duplicator | grep Active:" key="/run/secrets/autoremediation_id_rsa" 
 user="autoremediation" tinyId="3292"
+
 2018-02-18 01:28:21,484 [INFO]  Action_Handler::Action - ActionResult (Thread-5) 
 result="[b'   Active: active (running) since Sun 2018-02-18 01:28:21 UTC; 21ms ago\n']" 
 tinyId="3292"
+
 2018-02-18 01:28:21,484 [INFO]  Action_Handler::Action - ActionFinished (Thread-5) 
 rule_name="hostvalue_duplicator_garbagecollection_restartservice" 
 entity="wayvsymdup01.dev.saasapm.com" action="restart_service" 
