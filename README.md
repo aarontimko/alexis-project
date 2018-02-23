@@ -15,6 +15,8 @@
     - [Versions](#configuration)
 - [Diagrams and Concepts](#diagrams-and-concepts)
     - [Detail of Alexis Stack](#detail-of-alexis-stack)
+        - [Guiding Principles](#guiding-principles)
+        - [Diagram:Detail of Alexis Stack](#diagram-detail-of-alexis-stack)
         - [Dynatrace Integration with OpsGenie](#dynatrace-integration-with-opsgenie)
         - [Docker Bind Mounts](#docker-bind-mounts)
         - [Docker Networking](#docker-networking)
@@ -27,6 +29,9 @@
     - [Detail of Poller](#detail-of-poller)
     - [Detail of Classifier](#detail-of-classifier)
     - [Detail of Action_Handler](#detail-of-action_handler)
+    - [Alexis Deploy and Automation Testing](#alexis-deploy-and-automation-testing)
+        - [Code Integration Tests into the Foundation](#code-integration-tests-into-the-foundation)
+        - [Develop Automated Functional Testing](#develop-automated-functional-testing)
 
 
 # Introduction
@@ -161,6 +166,8 @@ Here are some of other ideas and principles:
 That last principle is often deprioritized in Operations automation projects.  There are many autoremediation products which perform tasks but never allow easy reporting on what was performed, how often, and when.
 
 From the point of view of this Alexis project, reporting about automation tasks should always be easy to locate and included from the foundation of the code.
+
+## Diagram: Detail of Alexis Stack
 
 ![Diagram: Detail of Alexis Stack](/images/diagram-detail-of-alexis-stack.png)
 
@@ -332,10 +339,10 @@ With this project, coding new features needed to be quick and deployment/testing
 
 We were overhauling a bunch of old code and bringing in new ideas, so we knew there were going to be mistakes and gaps in our coding.
 
-From our [Guiding Principles](#guiding-principles)), early in the development process, we were separating configuration from code.
+From our [Guiding Principles](#guiding-principles), we were separating configuration from code early in the development process.
 
-- Code in Python, build with Dockerfile into a Docker image (code)
-- Store in Git, push/pull (configuration)
+- Code in Python, build with Dockerfile into a Docker image (**code**)
+- Store in Git, push/pull (**configuration**)
 
 Since this is a modular (and still small) project, we also wanted to reduce the emphasis on extensive unit testing, relying instead on integration and functional testing.
 
