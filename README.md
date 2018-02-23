@@ -276,6 +276,31 @@ When we implement Autoremediation, we need to report against these kinds of ques
 
 The Alexis components log in`key=value` syntax which can be extracted as key-value pairs for reporting.
 
+See this example where the Alexis Components always outputs a Start and Finish log events (with `app_elapsed_ms`) for their _Receive_ and _Process_ primary functions:
+
+```
+2018-02-23 05:28:18,795 [INFO]  Classifier::Start - Classifier:Receive starting invocation t0="1519363698795"
+2018-02-23 05:28:18,803 [INFO]  Classifier::Finish - Classifier:Receive ending invocation t1="1519363698803" 
+status="success" app_elapsed_ms="6"
+```
+
+```
+2018-02-22 17:11:18,595 [INFO]  Classifier::Start - Classifier:Process (Thread-15) starting invocation t0="1519319478596"
+2018-02-22 17:11:18,728 [INFO]  Classifier::Finish - Classifier:Process (Thread-15) ending invocation t1="1519319478728" 
+status="success" app_elapsed_ms="132"
+```
+
+In the case of Classifier, we could output these logs to a log management platform which has key-value pair extraction features and then graph the `Classifier:Process app_elapsed_ms` alongside the output of the number of rules the Classifier is processing:
+
+```
+2018-02-23 05:28:18,798 [INFO]  Classifier::Rule - RetrievingRules (Thread-5) ruleCount="7" tinyId="3371"
+``` 
+
+There is a lot of good data already being logged by the Alexis stack - go explore and see what you find.
+
+There are also examples in the section for [Methodology of Action Handler](#methodology-of-action-handler)
+
+
 ### Keep A History
 
 We also want to record the high-level history of our autoremediation tasks as close to the original source as possible.
