@@ -123,6 +123,45 @@ This section describes the Alexis stack in greater detail, includes diagrams, an
 
 ## Detail of Alexis Stack
 
+### Guiding Principles
+
+The team which designed the initial blueprint for this Alexis project had worked on various automation, monitoring, and alerting projects in the past.
+
+The most important principle was to do the following:
+
+- _*Design with declarative configuration-as-code which can be re-used for infinite possibilities*_
+
+In Site Reliability Engineering and automation efforts, it is a common pitfall to code in "single-use" programs.  Similar problems might be solved a dozen times before the team starts considering that it could be have been designed comprehensively *one time as an engine*, with *dozens of configurations* to drive it.
+
+As an example of how this plays out in coding, the Classifer Rule could have simply allowed `description` or `message` or `entity` as the keys which can be searched.
+Most of the time, this would probably be sufficient for OpsGenie.
+
+But, hard-coding "description|message|entity" into our applications would have limited the potential to only those 3 keys.
+
+So, instead, the Classifier's Rules specify `search_key` and `search_text`.
+
+As long as the `search_key` exists in the incoming alert, we can search for any text within that key's value.
+
+This is a significant departure from only thinking of 1-3 possible use cases and limiting the code to only those _currently-imaginable keys_.
+
+---------------------------------------------------------
+
+Here are some of other ideas and principles:
+
+- Separate configuration from code
+- Share only the bare minimum code between Alexis components
+- Design with portability in mind
+- Include CI/CD concepts in the dev/build/deploy/test pipeline
+  - See [Alexis Deploy and Automation Testing](#alexis-deploy-and-automation-testing))
+- Consolidate to a few technologies and languages
+  - e.g. do not over-complicate with extra technologies (Nginx, message queue, MongoDB) which add little overall value to the project and increase complexity
+- Log all activity with reporting in mind, especially remember to log the unique id of the incoming data
+  - e.g. OpsGenie has a 'tinyId' which is unique to each alert and this tinyId value is logged on the majority of log statements during autoremediation
+
+That last principle is often deprioritized in Operations automation projects.  There are many autoremediation products which perform tasks but never allow easy reporting on what was performed, how often, and when.
+
+From the point of view of this Alexis project, reporting about automation tasks should always be easy to locate and included from the foundation of the code.
+
 ![Diagram: Detail of Alexis Stack](/images/diagram-detail-of-alexis-stack.png)
 
 ### Dynatrace Integration with OpsGenie
@@ -197,7 +236,7 @@ https://docs.docker.com/engine/swarm/secrets
 
 ### Rule Storage
 
-In alignment with our decision to not implement a message queue ([see API Access](#api-access)), we wanted to avoid using a database unless it was technically mandatory.
+In alignment with our decision to not implement a message queue (see [API Access](#api-access)), we wanted to avoid using a database unless it was technically mandatory.
 Therefore, currently the Classifier rules are stored on disk, which admittedly is not robust, but it accomplishes the goal of simple rule storage.
 
 Also, as a guiding directive we wanted to focus on making rules powerful and flexible so that it keeps rule storage to a minimum.
@@ -226,12 +265,14 @@ Currently, we post back to the OpsGenie ticket, but we will soon work on posting
 _This will be implemented by March 2018_
 
 
-## Diagram: Detail of Poller
+## Detail of Poller
 
 **Purpose**
+
 The purpose of the Poller is to process one or more feeds and push those feeds in JSON format to another endpoint.
 
 **Lean and Performant**
+
 We wanted to keep the Poller small and efficient, so there is no logic to parse or understand the incoming data.
 
 Theoretically, the Poller can poll multiple feeds and deliver the content of those feeds to identical or distinct Classifiers.
@@ -243,35 +284,67 @@ Theoretically, the Poller can poll multiple feeds and deliver the content of tho
 _Section not completed yet._
 
 
-## Diagram: Detail of Classifier
+## Detail of Classifier
 
 **Purpose**
+
 The purpose of the Classifier is to receive incoming data in JSON and compare that properties of that data against a rule set which is also in JSON.  If there is a rule match, the Classifier combines the incoming JSON and rule JSON and pushes the merged JSON to an Action_Handler endpoint.
 
 **Declarative**
+
 The Classifier is designed with declarative programming concepts so that a simple rule file can "tell" the Classifier how to classify and route incoming data.
 
 **Classify and Route**
+
 The Classifier serves both the purpose of being a Classifier and a Router.
 
 We wanted to allow engineers to program their own Classifier functions which could route to their own Action_Handlers.
 
 For instance, if someone wants to design a Classifier schema for ServiceNow, they can also design an Action_Handler which could receive the routed alert and call the ServiceNow APIs.
 
+![Diagram: Detail of Classifier](/images/diagram-detail-of-classifier.png)
+
 _Section not completed yet._
 
 
-## Diagram: Detail of Action_Handler
+## Detail of Action_Handler
 
 **Purpose**
+
 The purpose of the Action_Handler is to receive incoming, merged Alert+Rule JSON and to take actions based upon the declarative logic in the Rule portion of the incoming JSON.
 
 **Extensible**
+
 Currently, the Action_Handler's primary **"action"** is performing an SSH connection and running a one-liner on a remote host.  
 
 However, the code is structured to allow extension with new functions to handle new Actions.
 
 In future releases, we aim to make these extensibility similar to the "plugin" concept.
 
+![Diagram: Detail of Action_Handler](/images/diagram-detail-of-action-handler.png)
+
+_Section not completed yet._
+
+
+## Alexis Deploy and Automation Testing
+
+With this project, coding new features needed to be quick and deployment/testing needed to be near-effortless.
+
+We were overhauling a bunch of old code and bringing in new ideas, so we knew there were going to be mistakes and gaps in our coding.
+
+From our [Guiding Principles](#guiding-principles)), early in the development process, we were separating configuration from code.
+
+- Code in Python, build with Dockerfile into a Docker image (code)
+- Store in Git, push/pull (configuration)
+
+Since this is a modular (and still small) project, we also wanted to reduce the emphasis on extensive unit testing, relying instead on integration and functional testing.
+
+This is how we are accomplishing efficient integration and functional testing today.
+
+### Code Integration Tests into the Foundation
+
+_Section not completed yet._
+
+### Develop Automated Functional Testing
 
 _Section not completed yet._
