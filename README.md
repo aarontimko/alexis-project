@@ -151,6 +151,9 @@ As long as the `search_key` exists in the incoming alert, we can search for any 
 
 This is a significant departure from only thinking of 1-3 possible use cases and limiting the code to only those _currently-imaginable keys_.
 
+_@aarontimko --> An acknowledgement is needed here as I have borrowed my colleague Andi Grabner's terminology of "monitoring as code" in this documentation [GitHub: grabnerandi](https://github.com/grabnerandi) [Twitter: grabnerandi](https://twitter.com/grabnerandi)_
+
+
 ### Diagram: Explicit Rules vs Monitoring as Code
 
 ![Diagram: Explicit Rules](/images/diagram-explicit-rules.png)
@@ -422,7 +425,7 @@ We were overhauling a bunch of old code and bringing in new ideas, so we knew th
 From our [Guiding Principles](#guiding-principles), we were separating configuration from code early in the development process.
 
 - Code in Python, build with Dockerfile into a Docker image (**code**)
-- Store in Git, push/pull (**configuration**)
+- Store YAML and JSON in Git, push/pull (**configuration**)
 
 Since this is a modular (and still small) project, we also wanted to reduce the emphasis on extensive unit testing, relying instead on integration and functional testing.
 
