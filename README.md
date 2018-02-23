@@ -15,8 +15,10 @@
     - [Versions](#configuration)
 - [Diagrams and Concepts](#diagrams-and-concepts)
     - [Detail of Alexis Stack](#detail-of-alexis-stack)
-        - [Guiding Principles](#guiding-principles)
-        - [Diagram:Detail of Alexis Stack](#diagram-detail-of-alexis-stack)
+        - [Guiding Principle: Declarative Monitoring as Code](#guiding-principle-declarative-monitoring-as-code)
+        - [Diagram: Explicit Rules vs Monitoring as Code](#diagram-explicit-rules-vs-monitoring-as-code)
+        - [Other Guiding Principles](#other-guiding-principles)
+        - [Diagram: Detail of Alexis Stack](#diagram-detail-of-alexis-stack)
         - [Dynatrace Integration with OpsGenie](#dynatrace-integration-with-opsgenie)
         - [Docker Bind Mounts](#docker-bind-mounts)
         - [Docker Networking](#docker-networking)
@@ -128,13 +130,13 @@ This section describes the Alexis stack in greater detail, includes diagrams, an
 
 ## Detail of Alexis Stack
 
-### Guiding Principles
+### Guiding Principle: Declarative Monitoring as Code
 
 The team which designed the initial blueprint for this Alexis project had worked on various automation, monitoring, and alerting projects in the past.
 
 The most important principle was to do the following:
 
-- _*Design with declarative configuration-as-code which can be re-used for infinite possibilities*_
+- _*Design with declarative monitoring-as-code which can be re-used for infinite possibilities*_
 
 In Site Reliability Engineering and automation efforts, it is a common pitfall to code in "single-use" programs.  Similar problems might be solved a dozen times before the team starts considering that it could be have been designed comprehensively *one time as an engine*, with *dozens of configurations* to drive it.
 
@@ -149,7 +151,15 @@ As long as the `search_key` exists in the incoming alert, we can search for any 
 
 This is a significant departure from only thinking of 1-3 possible use cases and limiting the code to only those _currently-imaginable keys_.
 
+### Diagram: Explicit Rules vs Monitoring as Code
+
+![Diagram: Explicit Rules](/images/diagram-explicit-rules.png)
+
+![Diagram: Declarative Monitoring as Code](/images/diagram-declarative-monitoring-as-code.png)
+
 ---------------------------------------------------------
+
+### Other Guiding Principles
 
 Here are some of other ideas and principles:
 
@@ -159,7 +169,7 @@ Here are some of other ideas and principles:
 - Include CI/CD concepts in the dev/build/deploy/test pipeline
   - See [Alexis Deploy and Automation Testing](#alexis-deploy-and-automation-testing))
 - Consolidate to a few technologies and languages
-  - e.g. do not over-complicate with extra technologies (Nginx, message queue, MongoDB) which add little overall value to the project and increase complexity
+  - e.g. do not over-complicate with extra technologies (Nginx, message queue, MongoDB) whose presence add a higher degree of complexity than the tangible valued gained by their addition.
 - Log all activity with reporting in mind, especially remember to log the unique id of the incoming data
   - e.g. OpsGenie has a 'tinyId' which is unique to each alert and this tinyId value is logged on the majority of log statements during autoremediation
 
@@ -167,7 +177,7 @@ That last principle is often deprioritized in Operations automation projects.  T
 
 From the point of view of this Alexis project, reporting about automation tasks should always be easy to locate and included from the foundation of the code.
 
-## Diagram: Detail of Alexis Stack
+### Diagram: Detail of Alexis Stack
 
 ![Diagram: Detail of Alexis Stack](/images/diagram-detail-of-alexis-stack.png)
 
@@ -274,6 +284,8 @@ _This will be implemented by March 2018_
 
 ## Detail of Poller
 
+### Introduction to Poller
+
 **Purpose**
 
 The purpose of the Poller is to process one or more feeds and push those feeds in JSON format to another endpoint.
@@ -287,11 +299,26 @@ Theoretically, the Poller can poll multiple feeds and deliver the content of tho
 
 ![Diagram: Detail of Poller](/images/diagram-detail-of-poller.png)
 
+### Configuration of Poller
 
-_Section not completed yet._
+The configuration file is located here: `./docker/github/poller/conf/alexis.conf.yaml`
+
+### Methodology of Poller
+
+There are two important considerations for polling a feed of alerts or problems:
+
+- Limit the lookback timeframe (e.g. don't look for All Problems)
+- Only poll for Problems which have not been sent on for autoremediation.
+  - This is where [Keep A History](#keep-a-history) is important because we post back to the original Problem feed whether we are working on a Problem already or not
+
+With both OpsGenie and Dynatrace APIs, there is an _API for a Summary of Problems_ and there is an _API for the verbose Problem details_.
+
+Whether you are polling OpsGenie or Dynatrace, you will need to account for this and perform an initial poll for the list, then invidivual calls for the verbose details.
 
 
 ## Detail of Classifier
+
+### Introduction to Classifier
 
 **Purpose**
 
@@ -311,10 +338,22 @@ For instance, if someone wants to design a Classifier schema for ServiceNow, the
 
 ![Diagram: Detail of Classifier](/images/diagram-detail-of-classifier.png)
 
-_Section not completed yet._
+### Configuration of Classifier
+
+The configuration file is located here: `./docker/github/classifier/conf/alexis.conf.yaml`
+
+### Methodology of Classifier
+
+As mentioned above, rule storage is currently on disk.
+You can find examples rules in: `./docker/github/classifier/conf/rules`
+
+The most important feature behind the Classifier is described in detail in this section: 
+[Guiding Principle: Declarative Monitoring as Code](#guiding-principle-declarative-monitoring-as-code)
 
 
 ## Detail of Action_Handler
+
+### Introduction to Action Handler
 
 **Purpose**
 
@@ -330,7 +369,37 @@ In future releases, we aim to make these extensibility similar to the "plugin" c
 
 ![Diagram: Detail of Action_Handler](/images/diagram-detail-of-action-handler.png)
 
-_Section not completed yet._
+### Configuration of Action Handler
+
+The configuration file is located here: `./docker/github/action_handler/conf/alexis.conf.yaml`
+
+### Methodology of Action Handler
+
+The current Action Handler plugin does basic error handling for the remote SSH call.  It also will log the return output from the SSH command in order to report on success or to diagnose problems.
+
+Here is an excerpt of logged statements by the Action Handler's SSH handler:
+
+```
+2018-02-18 01:28:13,654 [INFO]  Action_Handler::Action - ActionStart (Thread-5) entity="wayvsymdup01.dev.saasapm.com" command="sudo systemctl restart duplicator; sudo systemctl status duplicator | grep Active:" key="/run/secrets/autoremediation_id_rsa" user="autoremediation" tinyId="3292"
+2018-02-18 01:28:21,484 [INFO]  Action_Handler::Action - ActionResult (Thread-5) result="[b'   Active: active (running) since Sun 2018-02-18 01:28:21 UTC; 21ms ago\n']" tinyId="3292"
+2018-02-18 01:28:21,484 [INFO]  Action_Handler::Action - ActionFinished (Thread-5) rule_name="hostvalue_duplicator_garbagecollection_restartservice" entity="wayvsymdup01.dev.saasapm.com" action="restart_service" action_reason="garbage_collection_or_memory_exhausted" action_status="success" app_elapsed_ms="7831" tinyId="3292" result="[b'   Active: active (running) since Sun 2018-02-18 01:28:21 UTC; 21ms ago\n']"
+```
+
+Note these important steps:
+
+1. `ActionStart`: we can see the `entity` we are running the command against, the `command`, and the OpsGenie `tinyId` can tie back to the original Problem
+1. `ActionResult`: this is the raw text returned by the SSH function in Python, note the OpsGenie `tinyId` can tie back to the original Problem
+1. `ActionFinished`: this is where we have basic error handling to determine `action_status="success"`, we are logging the `action_reason` and `rule_name`, and the OpsGenie `tinyId` can tie back to the original Problem
+
+This is where you can observe "logging" as one of the [Guiding Principles](#other-guiding-principles) and [Logging With Reporting in Mind](#logging-with-reporting-in-mind).
+
+Even by simply grepping for a tinyId through the Alexis stack, you can observe the progress of autoremediation all the way to the final stage.
+
+If the SSH connection bombs out, the "ActionResult" line will show `ERROR connection failed` which the SSH plugin will catch and report back in the `ActionFinished` log event: `action_status="failed"`
+
+And if we want to graph the `app_elapsed_ms` for all occurrences of `action=restart_service`, we can send our logs to a log management platform with key-value pair extraction capabilities.
+
+_In sum, a well-defined Action Handler plugin should always provide Answers which are readily available any time we want to pose Questions to our data._
 
 
 ## Alexis Deploy and Automation Testing
