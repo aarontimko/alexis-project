@@ -1,4 +1,8 @@
-# alexis-project-test
+# alexis-project
+
+Note: this is my own personal repository where I make staging edits.
+This will be published to the Dynatrace organization after further development and fine-tuning.
+
 
 # Table of contents
 
