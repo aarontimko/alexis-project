@@ -1,10 +1,14 @@
 from bottle import run, request, route, post, get, abort, default_app, HTTPResponse
 import re
 import requests
+import threading
+
 import alexis.common
 from alexis.common import *
-from alexis.opsgenie import *
-import threading
+# from alexis.opsgenie import *
+
+import alexis.dynatrace as dynatrace
+import alexis.opsgenie as opsgenie
 
 
 #   -----------------------------------   #
@@ -29,7 +33,7 @@ def build_rule_list(data_type, directory, enabled_status="true"):
             rule_json = grab_json_from_disk(rule_path)
 
             # only grab rules for the data_type of API endpoint
-            if rule_json['alert_feed'] == data_type \
+            if rule_json['alert_feed'].lower() == data_type.lower() \
                     and rule_json['enabled'] == enabled_status:
                 rule_list.append(rule_json)
             continue
@@ -74,10 +78,10 @@ token_conf = app_conf['tokens']
 token_runtime_file = os.path.join(conf_dir, str(token_conf['directory']), str(token_conf['runtime']))
 authentication_list = alexis_conf['authentication_list']
 
-# TODO: Iterate through authentication_list
-authentication = authentication_list[0]
-headers = authentication['headers']
-headers = json.loads(headers.replace("'", '"'))
+
+# authentication = authentication_list[0]
+# headers = authentication['headers']
+# headers = json.loads(headers.replace("'", '"'))
 
 
 # DEV AND DEBUG VARIABLES
@@ -144,7 +148,7 @@ def index():
                         kv=kvalue(ping_action_handler=ping_action_handler,
                                   ping_statuscode=ping_statuscode))
 
-@post('/v1/opsgenie')
+@post('/v1/classifier')
 def index():
     # BEGIN LOGGING AND START APP TIMER
     start(app_component="Receive")
@@ -188,9 +192,13 @@ def index():
 
         # Output message and tags
         log_to_disk('Data', msg='IncomingData',
-                    kv=kvalue(tinyId=incoming_data['tinyId'],
-                              message=incoming_data['message'],
-                              tags=incoming_data['tags']))
+                    kv=kvalue(unique_key=incoming_data['alexis']['unique_key'],
+                              unique_value=incoming_data['alexis'][
+                                  'unique_value'],
+                              feed_type=incoming_data['alexis'][
+                                  'feed_type'],
+                              feed_name=incoming_data['alexis'][
+                                  'feed_name']))
 
         # SEND TO THREAD FOR PROCESSING DATA
 
@@ -201,8 +209,11 @@ def index():
 
         wrap_up_app(app_component="Receive")
 
-        return HTTPResponse(status=200, body='{"received"="'
-                                             + incoming_data['tinyId']+'"}')
+        return HTTPResponse(status=200,
+                            body='{"received"="' + \
+                                 incoming_data['alexis']['unique_value'] + \
+                                 '"}')
+
 
 
 def process_data(incoming_data):
@@ -217,15 +228,34 @@ def process_data(incoming_data):
     log_to_disk('Thread', msg='ThreadStart ('+thread_name+')',
                 kv=kvalue(thread_name=thread_name))
 
+    # Define 'm' as the module which matches the feed type
+    m = globals()[incoming_data['alexis']['feed_type']]
+
+    # Pass app_conf to the module
+    m.pass_app_conf(primary_app_conf=app_conf)
+
+    # Get problem_id from incoming_data
+    problem_id = incoming_data['alexis']['unique_value']
+
+    # Get base_url from incoming_data
+    base_url = incoming_data['alexis']['base_url']
+
+    # Get feed_headers from incoming_data
+    feed_headers = incoming_data['alexis']['feed_headers']
+
+    #TODO: Push comment to problem: "context:Autoremediation" "Starting Classification using Rule set"
+
+
     # define incoming data_type
-    data_type = 'OpsGenie'
+    # data_type = 'OpsGenie'
 
     # RULE PROCESSING
-    rule_list = build_rule_list(data_type=data_type,
+    rule_list = build_rule_list(data_type=incoming_data['alexis']['feed_type'],
                                 directory=os.path.join(conf_dir, rules_dir))
     log_to_disk('Rule', msg='RetrievingRules ('+thread_name+')',
-                kv=kvalue(ruleCount=len(rule_list),
-                          tinyId=incoming_data['tinyId']))
+                kv=kvalue(rule_type=incoming_data['alexis']['feed_type'],
+                    ruleCount=len(rule_list),
+                    problem_id=problem_id))
 
     # Set alert_matches_rule flag to false
     alert_matches_any_rule = False
@@ -235,7 +265,7 @@ def process_data(incoming_data):
         log_to_disk('Rule', msg='ProcessingRule ('+thread_name+')',
                     kv=kvalue(rule_name=rule['rule_name'],
                               rule_version=rule['rule_version'],
-                              tinyId=incoming_data['tinyId']))
+                              problem_id=problem_id))
 
         # We are matching 'message' and 'tags' for each evaluation
         # So the needed evaluation matches is equal to 2x the number
@@ -250,9 +280,11 @@ def process_data(incoming_data):
 
             # Check if tags exist on the data,
             # then check if tags on incoming_data match
-            if incoming_data['tags'] != "[]":
+            problem_tags = m.try_obtain_problem_tags(problem=incoming_data)
+
+            if problem_tags != "[]":
                 list1 = evaluation['evaluation']['tags']
-                list2 = incoming_data['tags']
+                list2 = problem_tags
 
                 # This is old behavior to look for an exact match
                 #if sorted(list1) == sorted(list2):
@@ -266,22 +298,33 @@ def process_data(incoming_data):
                                           rule_name=rule['rule_name'],
                                           evaluation_tags=list1,
                                           incoming_data_tags=list2,
-                                          tinyId=incoming_data['tinyId']))
+                                          problem_id=problem_id))
                     matched_evaluation_count += 1
+
 
             # This compares the evaluation.search_text to the value of
             # evaluation.search_key in the incoming_data
-            message1 = evaluation['evaluation']['search_text']
-            message2 = incoming_data[evaluation['evaluation']['search_key']]
-            if re.search(message1, message2) is not None:
-                log_to_disk('Rule', msg='RuleEvaluation ('+thread_name+')',
-                            kv=kvalue(matched="true",
+            if evaluation['evaluation']['search_key'] in incoming_data:
+                message1 = evaluation['evaluation']['search_text']
+                message2 = incoming_data[evaluation['evaluation']['search_key']]        #TODO: LEAVE AS-IS, THIS IS ALREADY DECLARATIVE
+                if re.search(message1, message2) is not None:
+                    log_to_disk('Rule', msg='RuleEvaluation ('+thread_name+')',
+                                kv=kvalue(matched="true",
+                                          rule_name=rule['rule_name'],
+                                          evaluation_search_text=message1,
+                                          evaluation_search_key=evaluation['evaluation']['search_key'],
+                                          incoming_data_value=message2,
+                                          problem_id=problem_id))
+                    matched_evaluation_count += 1
+            else:
+                # search_key does not exist in the Rule
+                log_to_disk('Rule', msg='RuleEvaluation - search_key '
+                                        'does not exist (' + thread_name + ')',
+                            kv=kvalue(matched="false",
                                       rule_name=rule['rule_name'],
-                                      evaluation_search_text=message1,
-                                      evaluation_search_key=evaluation['evaluation']['search_key'],
-                                      incoming_data_value=message2,
-                                      tinyId=incoming_data['tinyId']))
-                matched_evaluation_count += 1
+                                      evaluation_search_key=
+                                      evaluation['evaluation']['search_key'],
+                                      problem_id=problem_id))
 
         # HOW WE GOT HERE:
         # All evaluations have been processed for the rule
@@ -298,14 +341,13 @@ def process_data(incoming_data):
                                   needed_evaluation_matches=needed_evaluation_matches,
                                   matched_evaluation_count=matched_evaluation_count,
                                   rule_name=rule['rule_name'],
-                                  message=incoming_data['message'],
-                                  tinyId=incoming_data['tinyId']))
+                                  problem_id=problem_id))
 
             # Merge Rule and Alert into new JSON dict
             merged_alert_and_rule = \
                 append_json_dict(incoming_data, "{'rule':", rule, "}")
             log_to_disk('Push', msg='MergedRuleAndAlert ('+thread_name+')',
-                        kv=kvalue(tinyId=incoming_data['tinyId'],
+                        kv=kvalue(problem_id=problem_id,
                                   json=merged_alert_and_rule))
 
 
@@ -337,10 +379,10 @@ def process_data(incoming_data):
                                 msg='PushError ('+thread_name+')',
                                 kv=kvalue(action_handler=action_handler_dest['linux'],
                                           status="failure",
-                                          tinyId=incoming_data['tinyId']))
+                                          problem_id=problem_id))
                     log_to_disk('Push', lvl='ERROR',
                                 msg='PushError ('+thread_name+')',
-                                kv=kvalue(tinyId=incoming_data['tinyId'],
+                                kv=kvalue(problem_id=problem_id,
                                           exception=e))
 
             # Checking for a POST result
@@ -358,11 +400,18 @@ def process_data(incoming_data):
                                           status="success",
                                           http_content=http_content))
 
-                    # Add default_queue(team) to alert
-                    opsgenie_add_team(thread_name=thread_name,
-                                      tinyId=incoming_data['tinyId'],
-                                      team=app_conf['default_remediation_queue'],
-                                      headers=headers)
+                    # Update Problem/Alert that a remediation rule has matched
+                    # And that we have sent to autoremediation
+                    m.try_submit_comment(
+                        thread_name=thread_name,
+                        base_url=base_url,
+                        problem_id=problem_id,
+                        comment_syntax='Autoremediation rule '
+                                       '$comment_replacestr has matched, '
+                                       'pushing to Action Handler',
+                        comment_replacestr=rule['rule_name'],
+                        comment_reason='PushProblemToActionHandler',
+                        f_headers=feed_headers)
 
                 else:
                     log_to_disk('Push', lvl='ERROR',
@@ -371,7 +420,7 @@ def process_data(incoming_data):
                                           post_results=post_results.status_code,
                                           status="failure",
                                           http_content=http_content,
-                                          tinyId=incoming_data['tinyId']))
+                                          problem_id=problem_id))
 
         # else, the Rule did not match the Alert
         else:
@@ -380,8 +429,7 @@ def process_data(incoming_data):
                                   needed_evaluation_matches=needed_evaluation_matches,
                                   matched_evaluation_count=matched_evaluation_count,
                                   rule_name=rule['rule_name'],
-                                  message=incoming_data['message'],
-                                  tinyId=incoming_data['tinyId']))
+                                  problem_id=problem_id))
 
 
     # HOW WE GOT HERE:
@@ -393,12 +441,24 @@ def process_data(incoming_data):
 
         # This is outside of the "for rule in rule_list:" loop
         # so that it does not trigger for every failed rule
-        #
+
+        # Log that no rules were matched
+        log_to_disk('Rules', msg='NoRulesMatched (' + thread_name + ')',
+                    kv=kvalue(problem_id=problem_id))
+
         # Add default_investigation_queue team to alert
-        opsgenie_add_team(thread_name=thread_name,
-                          tinyId=incoming_data['tinyId'],
-                          team=app_conf['default_investigation_queue'],
-                          headers=headers)
+        m.try_submit_comment(
+            thread_name=thread_name,
+            base_url=base_url,
+            problem_id=problem_id,
+            comment_syntax='Processed '
+                           '$comment_replacestr rules for '
+                           'rule_type="'+
+                           incoming_data['alexis']['feed_type']+
+                           '" and there were no matches',
+            comment_replacestr=len(rule_list),
+            comment_reason='FlagProblemForInvestigation',
+            f_headers=feed_headers)
 
 
     # Wrap up script

@@ -7,6 +7,7 @@ import os
 import yaml
 from time import sleep
 import re
+import requests
 
 
 def get_hostname():
@@ -276,10 +277,17 @@ def wrap_up_app(app_component="Main",status="success"):
     """
     now = round(time.time() * 1000, 0).__int__()
 
+    if status == "success":
+        log_lvl = "INFO"
+    else:
+        log_lvl = "ERROR"
+
     # Log to disk
-    log_to_disk('Finish', msg=app_name+':'+app_component+' ending invocation', kv=kvalue(t1=now,
-                                                                       status=status,
-                                                                       app_elapsed_ms=get_elapsed_ms()))
+    log_to_disk('Finish', lvl=log_lvl,
+                msg=app_name+':'+app_component+' ending invocation',
+                kv=kvalue(t1=now,
+                          status=status,
+                          app_elapsed_ms=get_elapsed_ms()))
 
 
 def quit_app():

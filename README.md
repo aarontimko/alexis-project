@@ -125,6 +125,7 @@ For full autoremediation, you will need to make the following changes:
 ### Versions
 
 v1.01 - Initial commit
+v1.02 - 03/29/2018 - commmit of new code which can process either Dynatrace or OpsGenie natively.  Still needs some work and debugging, and also documentation.  This new code coincides with Poller:2.060 and Classifier:2.060
 
 
 # Diagrams and Concepts
